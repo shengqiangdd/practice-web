@@ -256,7 +256,8 @@ export default {
       if (flag) {
         this.pageIndex = 1;
       }
-
+      const array = [1,1,3,2,4,2,3,2,3,2,4,4];
+      this.uniq(array)
       this.isUpdate = false;
       var num = 0;
       this.dataListLoading = true;
@@ -457,20 +458,26 @@ export default {
       }
     },
     uniq(array) {
-      var temp = [];
-      var index = [];
-      var l = array.length;
-      for (let i = 0; i < l; i++) {
-        for (let j = i + 1; j < l; j++) {
-          if (array[i] === array[j]) {
-            i++;
-            j = i;
-          }
+      let arrNum = array.reduce((prev,cur) => {
+        if (!prev.includes(cur)) {
+          prev.push(cur)
         }
-        temp.push(array[i]);
-        index.push(i);
-      }
-      return temp;
+        return prev
+      },[])
+      // var temp = [];
+      // var index = [];
+      // var l = array.length;
+      // for (let i = 0; i < l; i++) {
+      //   for (let j = i + 1; j < l; j++) {
+      //     if (array[i] === array[j]) {
+      //       i++;
+      //       j = i;
+      //     }
+      //   }
+      //   temp.push(array[i]);
+      //   index.push(i);
+      // }
+      return arrNum;
     },
     getTypetree() {
       this.dataListLoading = true;

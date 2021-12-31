@@ -76,22 +76,18 @@ export default {
           this.$emit('tCarRunDriverAdd', selected)
         }
     },
-    // 把选中的司机的id改为传过来的id，将选中的司机绑定到id上
+    // 将选中的司机和绑定车辆
     selectToAdd(id) {
         const that = this
         const selected = this.dataList.filter(d => that.selectValue == d.id)[0]
         this.$http({
             url: this.$http.adornUrl(
-              `/generator/tcardriver/save`
+              `/generator/tcarcar/updateDriver`
             ),
             method: "post",
             data: this.$http.adornData({
-              id: id || undefined,
-              name: selected.name,
-              sex: selected.sex,
-              tel: selected.tel,
-              type: selected.type,
-              remark: selected.remark,
+              carId: id || undefined,
+              driverId: selected.id
             }),
           }).then(({ data }) => {
             if (data && data.code === 0) {

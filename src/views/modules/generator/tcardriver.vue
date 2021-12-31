@@ -236,7 +236,7 @@ import SelectDriver from './selectDriver.vue'
       closeDialog() {
         this.isAdd = true
       },
-      // 把当前车辆的id传过去，为选中的司机添加绑定到当前车辆的id
+      // 把当前车辆的id传过去，连表更新选中的司机为当前车辆的司机
       addDriver() {
         this.$refs.selectDriver.selectToAdd(this.dataForm.id)
       }
