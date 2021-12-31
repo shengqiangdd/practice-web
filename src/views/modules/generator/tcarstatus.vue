@@ -1,0 +1,261 @@
+<template>
+  <el-container>
+    <el-header>车辆状态查询</el-header>
+    <el-container>
+      <el-main>
+        <div class="mod-config">
+          <el-form
+            :inline="true"
+            :model="dataForm"
+            @keyup.enter.native="getDateList(dataForm.begintime)"
+          >
+            <span class="dateto">选择查询月份：</span>
+            <el-form-item label="">
+              <el-date-picker
+                v-model="dataForm.begintime"
+                type="month"
+                placeholder=""
+              >
+              </el-date-picker>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="getDateList(dataForm.begintime)"
+                >查询</el-button
+              >
+            </el-form-item>
+          </el-form>
+          <el-table
+            :data="dataList"
+            ref="tCarStatusTable"
+            border
+            v-loading="dataListLoading"
+            style="width: 100%"
+          >
+            <el-table-column
+              prop="carnum"
+              header-align="center"
+              align="center"
+              label="车辆\日期"
+            >
+            </el-table-column>
+            <el-table-column
+              header-align="center"
+              align="center"
+              v-for="item in dateList"
+              :label="item.label"
+              :key="item.key"
+            >
+              <template slot-scope="scope">
+                <div
+                  v-if="isHaveBegintime != true"
+                  :style="isChuChe(scope.row, item)"
+                  @click="clickToSeeCarRun($event, scope.row)"
+                >
+                  {{ dateFormat(scope, item) }}
+                </div>
+                <div
+                  v-else
+                  :style="{color:rows[`${scope.row.carid}`][`${item.key}`].color}"
+                  @click="clickToSeeCarRun($event, scope.row)"
+                >
+                  {{ rows[`${scope.row.carid}`][`${item.key}`].value }}
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+        <!-- 弹窗, 新增 / 修改 -->
+        <add-or-update
+          v-if="addOrUpdateVisible"
+          ref="addOrUpdate"
+          @refreshDataList="getDataList"
+        ></add-or-update>
+      </el-main>
+    </el-container>
+  </el-container>
+</template>
+<script>
+import AddOrUpdate from "./tcarrun-add-or-update";
+let that;
+export default {
+  data() {
+    return {
+      dataForm: {
+        begintime: "",
+        endtime: "",
+      },
+      year: "",
+      spanColor: "",
+      row: {},
+      rows: [],
+      dataList: [],
+      dateList: [],
+      dateObj: {},
+      dataListLoading: false,
+      pageIndex: 1,
+      pageSize: 20,
+      addOrUpdateVisible: false,
+      isHaveBegintime: false,
+    };
+  },
+  created() {
+    that = this;
+  },
+  activated() {
+    this.getDateList();
+    this.getDataList();
+  },
+  components: {
+    AddOrUpdate,
+  },
+  methods: {
+    // 获取数据列表
+    getDataList() {
+      this.dataListLoading = true;
+      this.$http({
+        url: this.$http.adornUrl("/generator/tcarcar/tcarstatus"),
+        method: "get",
+        params: this.$http.adornParams({
+          begintime: this.dataForm.begintime,
+          endtime: this.dataForm.endtime,
+        }),
+      }).then(({ data }) => {
+        if (data && data.code === 0) {
+          console.log(data);
+          this.dataList = data.list;
+          if (
+            this.dataForm.begintime != null &&
+            this.dataForm.begintime != ""
+          ) {
+            if (data.dlist != null) {
+              this.rows = data.dlist;
+              this.dateList = data.dates;
+              this.isHaveBegintime = true;
+            }
+          }
+        } else {
+          this.dataList = [];
+        }
+        this.dataListLoading = false;
+      });
+    },
+    getDateList(d) {
+      if (d != null && d != "") {
+        this.dateList.splice(0, this.dateList.length);
+        return this.getDataList();
+      } else {
+        this.dateList.splice(0, this.dateList.length);
+        var date = new Date();
+        var year = date.getFullYear();
+        var month = date.getMonth() + 1;
+        var m = month < 10 ? "0" + month : month;
+        var day = this.getMonthDate(year, m);
+        for (let i = 1; i <= day; i++) {
+          this.dateList.push({
+            label: m + "-" + (i < 10 ? "0" + i : i),
+            value: "",
+            date: year + "-" + m + "-" + (i < 10 ? "0" + i : i),
+            color: "",
+            key: i,
+          });
+        }
+        this.year = date.getFullYear();
+      }
+    },
+    getMonthDate(year, month) {
+      var date = new Date(year, month, 0);
+      return date.getDate();
+    },
+    // 点击每一项数据如果是已出车的，可以看到出车信息
+    clickToSeeCarRun(e, row) {
+      if (e.target.innerText == "出车") {
+        this.addOrUpdateVisible = true;
+        this.$nextTick(() => {
+          this.$refs.addOrUpdate.init(row);
+        });
+      }
+    },
+    dFormat(date) {
+      let year = date.getFullYear();
+      let month = date.getMonth() + 1;
+      month = month < 10 ? "0" + month : month;
+      let day = date.getDate();
+      day = day < 10 ? "0" + day : day;
+      return year + "-" + month + "-" + day;
+    },
+  },
+  filters: {},
+  computed: {
+    dateFormat() {
+      return (val, item) => {
+        let row = val.row;
+        let begintime = val.row.begintime;
+        if (row.status != null && begintime == item.date && row.status == 1) {
+          return "出车";
+        } else {
+          return "空闲";
+        }
+      };
+    },
+    isChuChe() {
+      return (row, item) => {
+        if (
+          row.status != null &&
+          row.begintime == item.date &&
+          row.status == 1
+        ) {
+          return {
+            color: "red",
+          };
+        } else {
+          return {
+            color: "green",
+          };
+        }
+      };
+    },
+  },
+  watch: {
+    "dataForm.begintime": {
+      handler(newVal, oldVal) {
+        let date = new Date(newVal);
+        let month = date.getMonth() + 1;
+        let year = date.getFullYear();
+        let day = this.getMonthDate(year, month);
+        this.dataForm.begintime = this.dFormat(date);
+        this.dataForm.endtime = year + "-" + month + "-" + day;
+      },
+    },
+  },
+};
+</script>
+<style scoped>
+.el-header,
+.el-footer {
+  background-color: #b3c0d1;
+  color: #333;
+  text-align: center;
+  line-height: 60px;
+}
+
+.el-main {
+  background-color: #e9eef3;
+  color: #333;
+}
+
+.el-container > .el-container {
+  height: 70%;
+}
+
+body > .el-container {
+  margin-bottom: 40px;
+}
+
+.typetree {
+  margin-top: 1%;
+}
+
+.dateto {
+  line-height: 36px;
+}
+</style>
