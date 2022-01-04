@@ -26,7 +26,7 @@
               type="date"
               align="right"
               placeholder="保险时间"
-              style="width:100%"
+              style="width: 100%"
               value-format="yyyy-MM-dd"
             >
             </el-date-picker>
@@ -90,7 +90,7 @@
               type="date"
               align="right"
               placeholder="到期时间"
-              style="width:100%"
+              style="width: 100%"
               value-format="yyyy-MM-dd"
             >
             </el-date-picker>
@@ -103,7 +103,9 @@
     </el-form>
     <span slot="footer" class="dialog-footer">
       <el-button @click="closeDialog">取消</el-button>
-      <el-button type="primary" @click="dataFormSubmit()">{{ dataForm.id ? '保存' : '确定' }}</el-button>
+      <el-button type="primary" @click="dataFormSubmit()">{{
+        dataForm.id ? "保存" : "确定"
+      }}</el-button>
     </span>
   </el-dialog>
 </template>
@@ -190,11 +192,13 @@ export default {
     };
   },
   methods: {
-    init(id, isAdd) {
+    init(id, isAdd, row) {
       this.dataForm.id = id || 0;
       this.visible = true;
-      if (isAdd) {
+      if (isAdd && row) {
         this.addId = this.dataForm.id;
+        this.dataForm.carnum = row.number;
+        this.dataForm.carmodel = row.model;
       } else {
         this.$nextTick(() => {
           this.$refs["dataForm"].resetFields();
@@ -232,15 +236,13 @@ export default {
         if (valid) {
           this.$http({
             url: this.$http.adornUrl(
-              `/generator/tcarinsurance/${
-                this.addId > 0 ? "save" : "update"
-              }`
+              `/generator/tcarinsurance/${this.addId > 0 ? "save" : "update"}`
             ),
             method: "post",
             data: this.$http.adornData({
               id: this.dataForm.id || undefined,
               carid: this.addId || undefined,
-              carnum: this.dataForm.carnum,
+              carid: this.dataForm.carid,
               number: this.dataForm.number,
               bxdate: this.dataForm.bxdate,
               bxtype: this.dataForm.bxtype,
@@ -253,33 +255,35 @@ export default {
               usecompany: this.dataForm.usecompany,
               carmodel: this.dataForm.carmodel,
             }),
-          }).then(({ data }) => {
-            if (data && data.code === 0) {
-              this.$message({
-                message: "操作成功",
-                type: "success",
-                duration: 1500,
-                onClose: () => {
-                  this.addId = 0
-                  this.$refs["dataForm"].resetFields();
-                  this.visible = false;
-                  this.$emit("refreshDataList");
-                  this.$emit('closeDialog')
-                },
-              });
-            } else {
-              this.$message.error(data.msg);
-            }
-          });
+          })
+            .then(({ data }) => {
+              if (data && data.code === 0) {
+                this.$message({
+                  message: "操作成功",
+                  type: "success",
+                  duration: 1500,
+                  onClose: () => {
+                    this.addId = 0;
+                    this.$refs["dataForm"].resetFields();
+                    this.visible = false;
+                    this.$emit("refreshDataList");
+                    this.$emit("closeDialog");
+                  },
+                });
+              } else {
+                this.$message.error(data.msg);
+              }
+            })
+            .catch((_) => {});
         }
       });
     },
     // 取消选择
     closeDialog() {
       this.$refs["dataForm"].resetFields();
-      this.visible = false
-      this.$emit('closeDialog')
-    }
+      this.visible = false;
+      this.$emit("closeDialog");
+    },
   },
 };
 </script>

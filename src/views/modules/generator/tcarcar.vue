@@ -155,7 +155,7 @@
                 <el-button
                   type="text"
                   size="small"
-                  @click="addOrUpdateHandle(scope.row.id, (isUpdate = true))"
+                  @click="addOrUpdateHandle(scope.row, (isUpdate = true))"
                   >修改</el-button
                 >
                 <el-button
@@ -223,6 +223,7 @@ export default {
       pageSize: 10,
       totalPage: 0,
       totalCount: 0,
+      currentCount: 0,
       dialogVisible: false,
       dataListLoading: false,
       dataListSelections: [],
@@ -256,8 +257,6 @@ export default {
       if (flag) {
         this.pageIndex = 1;
       }
-      const array = [1,1,3,2,4,2,3,2,3,2,4,4];
-      this.uniq(array)
       this.isUpdate = false;
       var num = 0;
       this.dataListLoading = true;
@@ -282,6 +281,7 @@ export default {
           this.dataList = data.page.records;
           this.totalPage = data.page.pages;
           this.totalCount = data.page.total;
+          this.currentCount = data.page.records.length
           this.dialogVisible = false;
           this.searchVisible = false;
           if (num < 2) {
@@ -293,6 +293,7 @@ export default {
             });
             this.getTypetree();
           }
+          this.clearDataForm()
         } else {
           this.dataList = [];
           this.totalPage = 0;
@@ -498,13 +499,18 @@ export default {
         this.dataListLoading = false;
       });
     },
+    clearDataForm() {
+      for(let i in this.dataForm) {
+        delete this.dataForm[i]
+      }
+    }
   },
   computed: {
     // 计算选中的个数
     selectComputed() {
       const selected = this.dataList.filter((d) => d.checked == true);
       this.dataListSelections = selected;
-      if (this.dataListSelections.length == this.totalCount) {
+      if (this.dataListSelections.length == this.currentCount) {
         this.dataList.forEach((d) => {
           this.$refs.tcarTable.toggleRowSelection(d, true);
         });

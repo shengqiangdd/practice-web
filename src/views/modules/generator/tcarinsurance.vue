@@ -15,7 +15,8 @@
         <el-button
           v-if="isAuth('generator:tcarinsurance:save')"
           type="success"
-          @click="addOrUpdateHandle(upId)"
+          :disabled="upId.length <= 0"
+          @click="addOrUpdateHandle(upId,isAdd = false)"
           >编辑</el-button
         >
         <el-button @click="getDataList(dataForm.id)">刷新</el-button>
@@ -153,6 +154,7 @@ export default {
       dataListSelections: [],
       upId: "",
       addOrUpdateVisible: false,
+      currentCarRow: {},
     };
   },
   components: {
@@ -163,8 +165,9 @@ export default {
     this.getDataList();
   },
   methods: {
-    init(id, isUpdate) {
-      this.dataForm.id = id || 0;
+    init(row, isUpdate) {
+      this.dataForm.id = row.id || 0;
+      this.currentCarRow = row || {};
       this.$nextTick(() => {
         this.getDataList(this.dataForm.id);
       });
@@ -236,8 +239,9 @@ export default {
         });
       } else {
         this.addOrUpdateVisible = true;
+        id = id ? (typeof(id) == 'number' ? id : id[0]) : 0
         this.$nextTick(() => {
-          this.$refs.addOrUpdate.init(id, this.isAdd);
+          this.$refs.addOrUpdate.init(id, this.isAdd, this.currentCarRow);
         });
       }
     },
@@ -261,20 +265,22 @@ export default {
           url: this.$http.adornUrl("/generator/tcarinsurance/delete"),
           method: "post",
           data: this.$http.adornData(ids, false),
-        }).then(({ data }) => {
-          if (data && data.code === 0) {
-            this.$message({
-              message: "操作成功",
-              type: "success",
-              duration: 1500,
-              onClose: () => {
-                this.getDataList(this.dataForm.id);
-              },
-            });
-          } else {
-            this.$message.error(data.msg);
-          }
-        });
+        })
+          .then(({ data }) => {
+            if (data && data.code === 0) {
+              this.$message({
+                message: "操作成功",
+                type: "success",
+                duration: 1500,
+                onClose: () => {
+                  this.getDataList(this.dataForm.id);
+                },
+              });
+            } else {
+              this.$message.error(data.msg);
+            }
+          })
+          .catch((_) => {});
       });
     },
     // 新增或者修改选择了取消

@@ -23,7 +23,7 @@
               type="date"
               align="right"
               placeholder="年检日期"
-              style="width:100%"
+              style="width: 100%"
               value-format="yyyy-MM-dd"
             >
             </el-date-picker>
@@ -54,7 +54,7 @@
               type="date"
               align="right"
               placeholder="到期日期"
-              style="width:100%"
+              style="width: 100%"
               value-format="yyyy-MM-dd"
             >
             </el-date-picker>
@@ -70,7 +70,9 @@
     </el-form>
     <span slot="footer" class="dialog-footer">
       <el-button @click="closeDialog">取消</el-button>
-      <el-button type="primary" @click="dataFormSubmit()">{{ dataForm.id ? '保存' : '确定' }}</el-button>
+      <el-button type="primary" @click="dataFormSubmit()">{{
+        dataForm.id ? "保存" : "确定"
+      }}</el-button>
     </span>
   </el-dialog>
 </template>
@@ -119,12 +121,12 @@ export default {
     };
   },
   methods: {
-    init(id, isAdd) {
+    init(id, isAdd, row) {
       this.dataForm.id = id || 0;
       this.visible = true;
-      if (isAdd) {
+      if (isAdd && row) {
         this.addId = this.dataForm.id;
-
+        this.dataForm.carnum = row.number;
       } else {
         this.$nextTick(() => {
           this.$refs["dataForm"].resetFields();
@@ -154,7 +156,6 @@ export default {
     },
     // 表单提交
     dataFormSubmit() {
-
       this.$refs["dataForm"].validate((valid) => {
         if (valid) {
           this.$http({
@@ -181,7 +182,7 @@ export default {
                 type: "success",
                 duration: 1500,
                 onClose: () => {
-                  this.addId = 0
+                  this.addId = 0;
                   this.$refs["dataForm"].resetFields();
                   this.visible = false;
                   this.$emit("closeDialog");
@@ -191,7 +192,7 @@ export default {
             } else {
               this.$message.error(data.msg);
             }
-          });
+          }).catch(_=> {})
         }
       });
     },

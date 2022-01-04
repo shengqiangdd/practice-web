@@ -390,12 +390,12 @@ export default {
   },
   mounted() {},
   methods: {
-    init(id, isUpdate) {
-      this.dataForm.id = id || 0;
-      if (id) {
+    init(row, isUpdate) {
+      this.dataForm.id = row.id || 0;
+      if (row.id) {
         this.$nextTick(() => {
-          this.$refs.tCarInspection.init(this.dataForm.id, isUpdate);
-          this.$refs.tCarInsurance.init(this.dataForm.id, isUpdate);
+          this.$refs.tCarInspection.init(row, isUpdate);
+          this.$refs.tCarInsurance.init(row, isUpdate);
           this.$refs.tCarDriver.init(this.dataForm.id, isUpdate);
         });
       }
