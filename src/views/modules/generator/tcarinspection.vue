@@ -15,7 +15,7 @@
         <el-button
           v-if="isAuth('generator:tcarinsurance:save')"
           type="success"
-          @click="addOrUpdateHandle(upId,isAdd = false)"
+          @click="addOrUpdateHandle(upId, (isAdd = false))"
           :disabled="upId.length <= 0"
           >编辑</el-button
         >
@@ -160,11 +160,11 @@ export default {
   },
   methods: {
     init(row, isUpdate) {
-      this.dataForm.id = row.id || 0;
-      this.currentCarRow = row || {};
-      this.$nextTick(() => {
-        this.getDataList(this.dataForm.id);
-      });
+      if (row) {
+        this.dataForm.id = row.id || 0;
+        this.currentCarRow = row || {};
+      }
+      this.getDataList(this.dataForm.id);
     },
     // 获取数据列表
     getDataList(id) {

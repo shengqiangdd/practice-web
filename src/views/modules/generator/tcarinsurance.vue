@@ -166,8 +166,10 @@ export default {
   },
   methods: {
     init(row, isUpdate) {
-      this.dataForm.id = row.id || 0;
-      this.currentCarRow = row || {};
+      if (row) {
+        this.dataForm.id = row.id || 0;
+        this.currentCarRow = row || {};
+      }
       this.$nextTick(() => {
         this.getDataList(this.dataForm.id);
       });
