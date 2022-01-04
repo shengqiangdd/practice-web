@@ -89,8 +89,8 @@
                   prop="isstop"
                   label-position="right"
                 >
-                  <el-radio v-model="dataForm.isstop" label="1">是</el-radio>
-                  <el-radio v-model="dataForm.isstop" label="0">否</el-radio>
+                  <el-radio v-model="dataForm.isstop" :label="1">是</el-radio>
+                  <el-radio v-model="dataForm.isstop" :label="0">否</el-radio>
                 </el-form-item>
               </div>
             </el-col>
@@ -249,7 +249,9 @@
     </el-tabs>
     <div class="dialog-footer" v-if="activeName === 'car'">
       <el-button @click="onDialogClosed">取消</el-button>
-      <el-button type="primary" @click="dataFormSubmit()">{{ dataForm.id ? '保存' : '确定' }}</el-button>
+      <el-button type="primary" @click="dataFormSubmit()">{{
+        dataForm.id ? "保存" : "确定"
+      }}</el-button>
     </div>
   </el-dialog>
 </template>
@@ -289,7 +291,7 @@ export default {
         usedept: "",
         status: "",
         remark: "",
-        isstop: "",
+        isstop: 0,
       },
       carTypes: [
         {
@@ -391,15 +393,13 @@ export default {
   mounted() {},
   methods: {
     init(row, isUpdate) {
-      this.dataForm.id = row.id || 0;
-      if (row.id) {
-        this.$nextTick(() => {
-          this.$refs.tCarInspection.init(row, isUpdate);
-          this.$refs.tCarInsurance.init(row, isUpdate);
-          this.$refs.tCarDriver.init(this.dataForm.id, isUpdate);
-        });
-      }
       this.visible = true;
+      this.dataForm.id = row.id || 0;
+      this.$nextTick(() => {
+        this.$refs.tCarInspection.init(row, isUpdate);
+        this.$refs.tCarInsurance.init(row, isUpdate);
+        this.$refs.tCarDriver.init(this.dataForm.id, isUpdate);
+      });
       this.$nextTick(() => {
         this.$refs["dataForm"].resetFields();
         if (this.dataForm.id) {
@@ -476,33 +476,35 @@ export default {
               remark: this.dataForm.remark,
               isstop: this.dataForm.isstop,
             }),
-          }).then(({ data }) => {
-            if (data && data.code === 0) {
-              this.$message({
-                message: "操作成功",
-                type: "success",
-                duration: 1500,
-                onClose: () => {
-                  this.$refs.tCarInspection.init()
-                  this.$refs.tCarInsurance.init()
-                  this.$refs.tCarDriver.init()
-                  this.visible = false;
-                  this.$emit("refreshDataList");
-                },
-              });
-            } else {
-              this.$message.error(data.msg);
-            }
-          });
+          })
+            .then(({ data }) => {
+              if (data && data.code === 0) {
+                this.$message({
+                  message: "操作成功",
+                  type: "success",
+                  duration: 1500,
+                  onClose: () => {
+                    this.$refs.tCarInspection.init();
+                    this.$refs.tCarInsurance.init();
+                    this.$refs.tCarDriver.init();
+                    this.visible = false;
+                    this.$emit("refreshDataList");
+                  },
+                });
+              } else {
+                this.$message.error(data.msg);
+              }
+            })
+            .catch((_) => {});
         }
       });
     },
     // 取消修改
     onDialogClosed() {
-      this.$refs.tCarInspection.init()
-      this.$refs.tCarInsurance.init()
-      this.$refs.tCarDriver.init()
-      this.visible = false;
+      this.$refs.tCarInspection.init();
+      this.$refs.tCarInsurance.init();
+      this.$refs.tCarDriver.init();
+      this.visible = false
       this.$emit("tCarUpdateClosed");
     },
   },

@@ -332,11 +332,11 @@ export default {
       this.dialogVisible = false;
     },
     // 新增 / 修改
-    addOrUpdateHandle(id) {
+    addOrUpdateHandle(row) {
       this.clearFormData();
       this.addOrUpdateVisible = true;
       this.$nextTick(() => {
-        this.$refs.addOrUpdate.init(id, this.isUpdate);
+        this.$refs.addOrUpdate.init(row, this.isUpdate);
         this.isUpdate = false;
       });
     },
