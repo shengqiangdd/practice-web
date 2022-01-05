@@ -44,7 +44,7 @@
                 >新增</el-button
               >
               <el-button @click="onSearch()">高级查询</el-button>
-              <el-button @click="getDataList()">刷新</el-button>
+              <el-button @click="getDataList(isFlush=true)">刷新</el-button>
               <el-button
                 v-if="isAuth('generator:tcarcar:delete')"
                 type="danger"
@@ -232,6 +232,7 @@ export default {
       activeName: "car",
       typeTree: [],
       nodeIds: [],
+      isFlush: false,
       defaultProps: {
         children: "children",
         label: "label",
@@ -256,6 +257,10 @@ export default {
     getDataList(flag) {
       if (flag) {
         this.pageIndex = 1;
+      }
+      if (this.isFlush) {
+        this.clearDataForm()
+        this.isFlush = false
       }
       this.isUpdate = false;
       var num = 0;
@@ -293,7 +298,7 @@ export default {
             });
             this.getTypetree();
           }
-          this.clearDataForm()
+          // this.clearDataForm()
         } else {
           this.dataList = [];
           this.totalPage = 0;
@@ -400,7 +405,7 @@ export default {
       });
     },
     handleNodeClick(val, node) {
-      this.clearFormData();
+      // this.clearFormData();
       if (node.parent != null) {
         switch (node.parent.label) {
           case "按单位注册":
@@ -465,19 +470,6 @@ export default {
         }
         return prev
       },[])
-      // var temp = [];
-      // var index = [];
-      // var l = array.length;
-      // for (let i = 0; i < l; i++) {
-      //   for (let j = i + 1; j < l; j++) {
-      //     if (array[i] === array[j]) {
-      //       i++;
-      //       j = i;
-      //     }
-      //   }
-      //   temp.push(array[i]);
-      //   index.push(i);
-      // }
       return arrNum;
     },
     getTypetree() {
@@ -488,7 +480,6 @@ export default {
       }).then(({ data }) => {
         if (data && data.code === 0) {
           this.typeTree = [];
-          console.log(data);
           var list = data.list;
           for (let i in list) {
             this.typeTree.push(list[i]);
@@ -581,18 +572,19 @@ export default {
     },
   },
   watch: {
-    // "dataForm.type": {
-    //   handler(newVal, oldVal) {
-    //     if (newVal == "小轿车") {
-    //       console.log("111");
-    //       this.dataForm.ntype = 1;
-    //     } else if (newVal == "大货车") {
-    //       this.dataForm.ntype = 2;
-    //     } else {
-    //       this.dataForm.ntype = 0;
-    //     }
-    //   },
-    // },
+    "dataForm.type": {
+      handler(newVal, oldVal) {
+        if (newVal && newVal == "小轿车") {
+          this.dataForm.ntype = 1;
+        } else if (newVal == "大货车") {
+          this.dataForm.ntype = 2;
+        } else if (newVal != '' && newVal != null) {
+          this.dataForm.ntype = 0;
+        } else {
+          this.dataForm.ntype = null;
+        }
+      },
+    },
   },
 };
 </script>
