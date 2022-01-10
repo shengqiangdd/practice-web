@@ -346,6 +346,8 @@ export default {
           var driver = this.driverList.filter((d) => row.driver == d.name)[0];
           this.dataForm.driverId = driver ? driver.id : "";
         }
+      } else {
+        this.getDriverList();
       }
       this.visible = true;
     },
@@ -415,8 +417,10 @@ export default {
       }).then(({ data }) => {
         if (data && data.code === 0) {
           this.driverList = data.page.records;
-          var driver = this.driverList.filter((d) => val.driver == d.name)[0];
-          this.dataForm.driverId = driver ? driver.id : "";
+          if (val) {
+            var driver = this.driverList.filter((d) => val.driver == d.name)[0];
+            this.dataForm.driverId = driver ? driver.id : "";
+          }
         } else {
           this.driverList = [];
         }
@@ -424,6 +428,17 @@ export default {
       });
     },
   },
+  watch: {
+    dataForm: {
+      handler(newVal,oldVal) {
+        let driver = this.driverList.filter(d => d.id == newVal.driverId)[0]
+        console.log(driver);
+        this.dataForm.drivertel = driver.tel
+        // this.dataL
+      },
+      deep: true
+    }
+  }
 };
 </script>
 <style scoped>

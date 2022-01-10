@@ -9,14 +9,54 @@
             :model="dataForm"
             @keyup.enter.native="getDateList(dataForm.begintime)"
           >
-            <span class="dateto">选择查询月份：</span>
+            <span class="dateto" v-text="dataForm.selectText"
+              >选择查询月份：</span
+            >
             <el-form-item label="">
               <el-date-picker
+                v-if="dataForm.isMonth"
                 v-model="dataForm.begintime"
                 type="month"
                 placeholder=""
               >
               </el-date-picker>
+              <el-date-picker
+                :format="dataForm.begintime + '至' + dataForm.endtime"
+                :picker-options="{ firstDayOfWeek: 1 }"
+                v-else
+                v-model="dataForm.weekVal"
+                type="week"
+                @change="showDate"
+              >
+              </el-date-picker>
+              <el-form-item>
+                <!-- <el-radio v-model="dataForm.monthOrWeek" label="month">按月</el-radio>
+              <el-radio v-model="dataForm.monthOrWeek" label="week">按周</el-radio> -->
+                <el-switch
+                  style="display: block"
+                  v-model="dataForm.isMonth"
+                  active-color="#13ce66"
+                  inactive-color="#ff4949"
+                  active-text="按月"
+                  inactive-text="按周"
+                  @change="onSwitchChange"
+                >
+                </el-switch>
+              </el-form-item>
+              <el-form-item>
+                <el-button
+                  v-text="dataForm.lastText"
+                  type="primary"
+                  @click="lastDateClick"
+                  >上一周</el-button
+                >
+                <el-button
+                  v-text="dataForm.nextText"
+                  type="primary"
+                  @click="nextDateClick"
+                  >下一周</el-button
+                >
+              </el-form-item>
             </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="getDateList(dataForm.begintime)"
@@ -55,7 +95,9 @@
                 </div>
                 <div
                   v-else
-                  :style="{color:rows[`${scope.row.carid}`][`${item.key}`].color}"
+                  :style="{
+                    color: rows[`${scope.row.carid}`][`${item.key}`].color,
+                  }"
                   @click="clickToSeeCarRun($event, scope.row)"
                 >
                   {{ rows[`${scope.row.carid}`][`${item.key}`].value }}
@@ -76,6 +118,7 @@
 </template>
 <script>
 import AddOrUpdate from "./tcarrun-add-or-update";
+
 let that;
 export default {
   data() {
@@ -83,6 +126,12 @@ export default {
       dataForm: {
         begintime: "",
         endtime: "",
+        isMonth: true,
+        lastText: "上一月",
+        nextText: "下一月",
+        selectText: "选择查询月份：",
+        weekVal: "",
+        dateType: "month",
       },
       year: "",
       spanColor: "",
@@ -93,7 +142,7 @@ export default {
       dateObj: {},
       dataListLoading: false,
       pageIndex: 1,
-      pageSize: 20,
+      pageSize: 30,
       addOrUpdateVisible: false,
       isHaveBegintime: false,
     };
@@ -118,11 +167,12 @@ export default {
         params: this.$http.adornParams({
           begintime: this.dataForm.begintime,
           endtime: this.dataForm.endtime,
+          type: this.dataForm.dateType,
         }),
       }).then(({ data }) => {
         if (data && data.code === 0) {
-          console.log(data);
           this.dataList = data.list;
+          console.log(data);
           if (
             this.dataForm.begintime != null &&
             this.dataForm.begintime != ""
@@ -168,6 +218,7 @@ export default {
     },
     // 点击每一项数据如果是已出车的，可以看到出车信息
     clickToSeeCarRun(e, row) {
+      console.log(row);
       if (e.target.innerText == "出车") {
         this.addOrUpdateVisible = true;
         this.$nextTick(() => {
@@ -182,6 +233,55 @@ export default {
       let day = date.getDate();
       day = day < 10 ? "0" + day : day;
       return year + "-" + month + "-" + day;
+    },
+    onSwitchChange(val) {
+      const dataForm = this.dataForm;
+      if (val) {
+        dataForm.lastText = "上一月";
+        dataForm.nextText = "下一月";
+        dataForm.monthOrWeek = "month";
+        dataForm.selectText = "选择查询月份：";
+        dataForm.dateType = "month";
+      } else {
+        dataForm.lastText = "上一周";
+        dataForm.nextText = "下一周";
+        dataForm.monthOrWeek = "week";
+        dataForm.selectText = "选择查询周：";
+        dataForm.dateType = "week";
+      }
+    },
+    showDate() {
+      const dataForm = this.dataForm;
+      let start = this.dayjs(dataForm.weekVal).subtract(1, "day").$d;
+      let end = this.dayjs(start).add(6, "day").$d;
+      dataForm.begintime = this.splitDate(start);
+      dataForm.endtime = this.splitDate(end);
+    },
+    lastDateClick() {
+      let start = this.dayjs(this.dataForm.begintime).subtract(7, "day").$d;
+      let end = this.dayjs(start).add(6, "day").$d;
+      this.dataForm.begintime = this.splitDate(start);
+      this.dataForm.endtime = this.splitDate(end);
+      if (this.dataForm.dateType === "week") {
+        this.dataForm.weekVal = this.dayjs(this.dataForm.weekVal).subtract(
+          7,
+          "day"
+        );
+      }
+    },
+    nextDateClick() {
+      let start = this.dayjs(this.dataForm.begintime).add(1, "month").$d;
+      let end = this.dayjs(start).endOf("month").$d;
+      if (this.dataForm.dateType === "week") {
+        start = this.dayjs(this.dataForm.begintime).add(7, "day").$d;
+        end = this.dayjs(start).add(6, "day").$d;
+        this.dataForm.weekVal = this.dayjs(this.dataForm.weekVal).add(7, "day");
+      }
+      this.dataForm.begintime = this.splitDate(start);
+      this.dataForm.endtime = this.splitDate(end);
+    },
+    splitDate(date) {
+      return this.dayjs(date).format("YYYY-MM-DD");
     },
   },
   filters: {},
@@ -218,12 +318,14 @@ export default {
   watch: {
     "dataForm.begintime": {
       handler(newVal, oldVal) {
-        let date = new Date(newVal);
-        let month = date.getMonth() + 1;
-        let year = date.getFullYear();
-        let day = this.getMonthDate(year, month);
-        this.dataForm.begintime = this.dFormat(date);
-        this.dataForm.endtime = year + "-" + month + "-" + day;
+        if (this.dataForm.dateType == "month") {
+          var begin = this.splitDate(
+            this.dayjs(this.dataForm.begintime).startOf("month").$d
+          );
+          var end = this.splitDate(this.dayjs(begin).endOf("month").$d);
+          this.dataForm.begintime = begin;
+          this.dataForm.endtime = end;
+        }
       },
     },
   },
