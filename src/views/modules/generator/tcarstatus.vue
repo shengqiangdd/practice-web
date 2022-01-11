@@ -96,11 +96,11 @@
                 <div
                   v-else
                   :style="{
-                    color: rows[`${scope.row.carid}`][`${item.key}`].color,
+                    color: rows[`${scope.row.id}`][`${item.key}`].color,
                   }"
                   @click="clickToSeeCarRun($event, scope.row)"
                 >
-                  {{ rows[`${scope.row.carid}`][`${item.key}`].value }}
+                  {{ rows[`${scope.row.id}`][`${item.key}`].value }}
                 </div>
               </template>
             </el-table-column>
@@ -218,7 +218,6 @@ export default {
     },
     // 点击每一项数据如果是已出车的，可以看到出车信息
     clickToSeeCarRun(e, row) {
-      console.log(row);
       if (e.target.innerText == "出车") {
         this.addOrUpdateVisible = true;
         this.$nextTick(() => {
@@ -258,27 +257,36 @@ export default {
       dataForm.endtime = this.splitDate(end);
     },
     lastDateClick() {
-      let start = this.dayjs(this.dataForm.begintime).subtract(7, "day").$d;
-      let end = this.dayjs(start).add(6, "day").$d;
-      this.dataForm.begintime = this.splitDate(start);
-      this.dataForm.endtime = this.splitDate(end);
-      if (this.dataForm.dateType === "week") {
-        this.dataForm.weekVal = this.dayjs(this.dataForm.weekVal).subtract(
-          7,
-          "day"
-        );
+      if (this.dataForm.begintime) {
+        let start = this.dayjs(this.dataForm.begintime).subtract(7, "day").$d;
+        let end = this.dayjs(start).add(6, "day").$d;
+        this.dataForm.begintime = this.splitDate(start);
+        this.dataForm.endtime = this.splitDate(end);
+        if (this.dataForm.dateType === "week") {
+          this.dataForm.weekVal = this.dayjs(this.dataForm.weekVal).subtract(
+            7,
+            "day"
+          );
+        }
+        return this.getDateList(this.dataForm.begintime);
       }
     },
     nextDateClick() {
-      let start = this.dayjs(this.dataForm.begintime).add(1, "month").$d;
-      let end = this.dayjs(start).endOf("month").$d;
-      if (this.dataForm.dateType === "week") {
-        start = this.dayjs(this.dataForm.begintime).add(7, "day").$d;
-        end = this.dayjs(start).add(6, "day").$d;
-        this.dataForm.weekVal = this.dayjs(this.dataForm.weekVal).add(7, "day");
+      if (this.dataForm.begintime) {
+        let start = this.dayjs(this.dataForm.begintime).add(1, "month").$d;
+        let end = this.dayjs(start).endOf("month").$d;
+        if (this.dataForm.dateType === "week") {
+          start = this.dayjs(this.dataForm.begintime).add(7, "day").$d;
+          end = this.dayjs(start).add(6, "day").$d;
+          this.dataForm.weekVal = this.dayjs(this.dataForm.weekVal).add(
+            7,
+            "day"
+          );
+        }
+        this.dataForm.begintime = this.splitDate(start);
+        this.dataForm.endtime = this.splitDate(end);
+        return this.getDateList(this.dataForm.begintime);
       }
-      this.dataForm.begintime = this.splitDate(start);
-      this.dataForm.endtime = this.splitDate(end);
     },
     splitDate(date) {
       return this.dayjs(date).format("YYYY-MM-DD");
