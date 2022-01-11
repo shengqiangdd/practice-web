@@ -432,9 +432,7 @@ export default {
     dataForm: {
       handler(newVal,oldVal) {
         let driver = this.driverList.filter(d => d.id == newVal.driverId)[0]
-        console.log(driver);
-        this.dataForm.drivertel = driver.tel
-        // this.dataL
+        this.dataForm.drivertel = driver && driver.tel != null ? driver.tel : ''
       },
       deep: true
     }
