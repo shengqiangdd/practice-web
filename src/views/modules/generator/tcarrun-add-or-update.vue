@@ -13,7 +13,7 @@
     >
       <el-row>
         <el-col :span="10">
-          <el-form-item label="用车人" prop="userid">
+          <el-form-item label="用车人ID" prop="userid">
             <el-input v-model="dataForm.userid" placeholder="用车人"></el-input>
           </el-form-item>
         </el-col>
@@ -35,7 +35,7 @@
               align="right"
               placeholder="开始时间"
               style="width: 100%"
-              value-format="yyyy-MM-dd"
+              value-format="yyyy-MM-dd HH:mm:ss"
             >
             </el-date-picker>
           </el-form-item>
@@ -48,7 +48,7 @@
               align="right"
               placeholder="结束时间"
               style="width: 100%"
-              value-format="yyyy-MM-dd"
+              value-format="yyyy-MM-dd HH:mm:ss"
             >
             </el-date-picker>
           </el-form-item>
@@ -98,9 +98,7 @@
       <el-row>
         <el-col :span="10">
           <el-form-item label="司机" prop="driver">
-            <el-select
-              v-model="dataForm.driverId"
-            >
+            <el-select v-model="dataForm.driverId">
               <el-option
                 v-for="item in driverList"
                 :key="item.id"
@@ -166,9 +164,7 @@
       <el-row>
         <el-col :span="21">
           <el-form-item label="状态" prop="status">
-            <el-select
-              v-model="dataForm.status"
-            >
+            <el-select v-model="dataForm.status">
               <el-option
                 v-for="item in statusList"
                 :key="item.id"
@@ -182,7 +178,7 @@
       </el-row>
     </el-form>
     <span slot="footer" class="dialog-footer">
-      <el-button @click="visible = false">取消</el-button>
+      <el-button @click="onDialogClosed">取消</el-button>
       <el-button type="primary" @click="dataFormSubmit()">{{
         dataForm.id ? "保存" : "确定"
       }}</el-button>
@@ -198,27 +194,27 @@ export default {
       visible: false,
       dataForm: {
         id: 0,
-        carid: "",
-        userid: "",
+        carid: "1",
+        userid: "1",
         username: "",
         number: "",
         begintime: "",
         planreturntime: "",
         endtime: "",
-        deptid: "",
+        deptid: "1",
         deptname: "",
         party: "",
         driver: "",
         drivertel: "",
-        beginplace: "",
-        endplace: "",
-        reason: "",
-        beginnumber: "",
-        endnumber: "",
-        mileage: "",
-        remark: "",
+        beginplace: "南宁",
+        endplace: "广州",
+        reason: "fawfawfwa",
+        beginnumber: "200",
+        endnumber: "300",
+        mileage: "400",
+        remark: "dawdagaw",
         type: "",
-        status: "",
+        status: "1",
         drivername: "",
         driverId: "",
       },
@@ -226,12 +222,12 @@ export default {
       statusList: [
         {
           id: 1,
-          name: '出车'
+          name: "出车",
         },
         {
           id: 2,
-          name: '空闲'
-        }
+          name: "空闲",
+        },
       ],
       driverList: [],
       dataRule: {
@@ -303,49 +299,49 @@ export default {
   methods: {
     init(row) {
       this.dataForm.id = row ? row.carid : 0;
-      if (row) {
-        this.$nextTick(() => {
-          this.$refs["dataForm"].resetFields();
-          this.$http({
-            url: this.$http.adornUrl(
-              `/generator/tcarrun/info/${this.dataForm.id}`
-            ),
-            method: "get",
-            params: this.$http.adornParams(),
+      this.$nextTick(() => {
+        // this.$refs["dataForm"].resetFields();
+        this.$http({
+          url: this.$http.adornUrl(
+            `/generator/tcarrun/info/${this.dataForm.id}`
+          ),
+          method: "get",
+          params: this.$http.adornParams(),
+        })
+          .then(({ data }) => {
+            if (data && data.code === 0) {
+              this.dataForm.carid = data.tCarRun.carid;
+              this.dataForm.userid = data.tCarRun.userid;
+              this.dataForm.username = data.tCarRun.username;
+              this.dataForm.number = data.tCarRun.number;
+              this.dataForm.begintime = data.tCarRun.begintime;
+              this.dataForm.planreturntime = data.tCarRun.planreturntime;
+              this.dataForm.endtime = data.tCarRun.endtime;
+              this.dataForm.deptid = data.tCarRun.deptid;
+              this.dataForm.deptname = data.tCarRun.deptname;
+              this.dataForm.party = data.tCarRun.party;
+              this.dataForm.driver = data.tCarRun.driver;
+              this.dataForm.drivertel = data.tCarRun.drivertel;
+              this.dataForm.beginplace = data.tCarRun.beginplace;
+              this.dataForm.endplace = data.tCarRun.endplace;
+              this.dataForm.reason = data.tCarRun.reason;
+              this.dataForm.beginnumber = data.tCarRun.beginnumber;
+              this.dataForm.endnumber = data.tCarRun.endnumber;
+              this.dataForm.mileage = data.tCarRun.mileage;
+              this.dataForm.remark = data.tCarRun.remark;
+              this.dataForm.type = data.tCarRun.type;
+              this.dataForm.status = data.tCarRun.status;
+            }
           })
-            .then(({ data }) => {
-              if (data && data.code === 0) {
-                this.dataForm.carid = data.tCarRun.carid;
-                this.dataForm.userid = data.tCarRun.userid;
-                this.dataForm.username = data.tCarRun.username;
-                this.dataForm.number = data.tCarRun.number;
-                this.dataForm.begintime = data.tCarRun.begintime;
-                this.dataForm.planreturntime = data.tCarRun.planreturntime;
-                this.dataForm.endtime = data.tCarRun.endtime;
-                this.dataForm.deptid = data.tCarRun.deptid;
-                this.dataForm.deptname = data.tCarRun.deptname;
-                this.dataForm.party = data.tCarRun.party;
-                this.dataForm.driver = data.tCarRun.driver;
-                this.dataForm.drivertel = data.tCarRun.drivertel;
-                this.dataForm.beginplace = data.tCarRun.beginplace;
-                this.dataForm.endplace = data.tCarRun.endplace;
-                this.dataForm.reason = data.tCarRun.reason;
-                this.dataForm.beginnumber = data.tCarRun.beginnumber;
-                this.dataForm.endnumber = data.tCarRun.endnumber;
-                this.dataForm.mileage = data.tCarRun.mileage;
-                this.dataForm.remark = data.tCarRun.remark;
-                this.dataForm.type = data.tCarRun.type;
-                this.dataForm.status = data.tCarRun.status;
-              }
-            })
-            .catch((_) => {});
-        });
-        if (this.driverList.length <= 0) {
-          this.getDriverList(row);
-        } else {
-          var driver = this.driverList.filter((d) => row.driver == d.name)[0];
-          this.dataForm.driverId = driver ? driver.id : "";
-        }
+          .catch((_) => {
+            this.dataForm.begintime = '';
+            this.dataForm.planreturntime = '';
+            this.dataForm.endtime = '';
+            this.dataForm.number = '';
+          });
+      });
+      if (this.driverList.length <= 0 && row) {
+        this.getDriverList(row);
       } else {
         this.getDriverList();
       }
@@ -417,26 +413,34 @@ export default {
       }).then(({ data }) => {
         if (data && data.code === 0) {
           this.driverList = data.page.records;
+          var driver = {}
           if (val) {
-            var driver = this.driverList.filter((d) => val.driver == d.name)[0];
-            this.dataForm.driverId = driver ? driver.id : "";
+            driver = this.driverList.filter((d) => val.driver == d.name)[0];
+          }else {
+            driver = this.driverList.filter((d) => d.id == 3)[0];
           }
+          this.dataForm.driverId = driver ? driver.id : "";
         } else {
           this.driverList = [];
         }
         this.dataListLoading = false;
       });
     },
+    onDialogClosed() {
+      this.dataForm.id = 0
+      this.visible = false
+    }
   },
   watch: {
     dataForm: {
-      handler(newVal,oldVal) {
-        let driver = this.driverList.filter(d => d.id == newVal.driverId)[0]
-        this.dataForm.drivertel = driver && driver.tel != null ? driver.tel : ''
+      handler(newVal, oldVal) {
+        let driver = this.driverList.filter((d) => d.id == newVal.driverId)[0];
+        this.dataForm.drivertel =
+          driver && driver.tel != null ? driver.tel : "";
       },
-      deep: true
-    }
-  }
+      deep: true,
+    },
+  },
 };
 </script>
 <style scoped>

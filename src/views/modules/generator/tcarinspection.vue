@@ -3,7 +3,7 @@
     <el-form
       :inline="true"
       :model="dataForm"
-      @keyup.enter.native="getDataList(dataForm.id)"
+      @keyup.enter.native="getDataList()"
     >
       <el-form-item>
         <el-button
@@ -19,7 +19,7 @@
           :disabled="upId.length <= 0"
           >编辑</el-button
         >
-        <el-button @click="getDataList(dataForm.id)">刷新</el-button>
+        <el-button @click="getDataList()">刷新</el-button>
         <el-button
           v-if="isAuth('generator:tcarinspection:delete')"
           type="danger"

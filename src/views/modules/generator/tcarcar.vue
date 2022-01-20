@@ -254,7 +254,7 @@ export default {
   },
   methods: {
     // 获取数据列表
-    getDataList(flag) {
+    getDataList(flag, isAdd) {
       if (flag) {
         this.pageIndex = 1;
       }
@@ -299,6 +299,11 @@ export default {
             this.getTypetree();
           }
           // this.clearDataForm()
+          if (isAdd) {
+            this.$nextTick(() => {
+              this.$refs.tcarTable.bodyWrapper.scrollTop = this.$refs.tcarTable.bodyWrapper.scrollHeight;
+            })
+          }
         } else {
           this.dataList = [];
           this.totalPage = 0;
@@ -335,6 +340,7 @@ export default {
     // 关闭车辆档案弹窗
     dialogToClose() {
       this.dialogVisible = false;
+      this.getDataList()
     },
     // 新增 / 修改
     addOrUpdateHandle(row) {
@@ -405,8 +411,8 @@ export default {
       });
     },
     handleNodeClick(val, node) {
-      // this.clearFormData();
       if (node.parent != null) {
+        this.clearFormData();
         switch (node.parent.label) {
           case "按单位注册":
             this.dataForm.company = val.label;
@@ -490,6 +496,23 @@ export default {
         this.dataListLoading = false;
       });
     },
+    getDistanceMonth(startTime,endTime) {
+      startTime = new Date(startTime)
+      endTime = new Date(endTime)
+      var dateToMonth = 0
+      var startDate = startTime.getDate() 
+      + startTime.getHours()/24 + startTime.getMinutes()/24/60;
+      var endDate = endTime.getDate()
+      + endTime.getHours()/24 + endTime.getMinutes()/24/60;
+      if (endDate >= startDate) {
+        dateToMonth = 0
+      } else {
+        dateToMonth = -1
+      }
+      let yearToMonth = (endTime.getFullYear() - startTime.getFullYear()) * 12
+      let monthToMonth = endTime.getMonth() - startTime.getMonth()
+      return yearToMonth + monthToMonth + dateToMonth
+    },
     clearDataForm() {
       for(let i in this.dataForm) {
         delete this.dataForm[i]
@@ -514,61 +537,27 @@ export default {
     checkInsurance() {
       return (row) => {
         if (row.insurance && row.insurance.bxdate && row.insurance.expiredate) {
-          var bxdate = new Date(row.insurance.bxdate)
-            .toLocaleDateString()
-            .split("/");
-          bxdate = this.padZero(bxdate, bxdate[1], bxdate[2]);
-          var insuranceDate = new Date(row.insurance.expiredate)
-            .toLocaleDateString()
-            .split("/");
-          insuranceDate = this.padZero(
-            insuranceDate,
-            insuranceDate[1],
-            insuranceDate[2]
-          );
-          const expire = insuranceDate - bxdate;
-          if (
-            (expire >= 300 && expire < 400) ||
-            (expire >= 9100 && expire <= 9116)
-          ) {
-            return {
-              color: "red",
-            };
-          }
+           let month = this.getDistanceMonth(row.insurance.bxdate,row.insurance.expiredate)
+           if (month == 3) {
+              return {
+                color: 'red'
+              }
+            }
         }
       };
     },
     // 计算年检到期时间是否还有3个月，如果还有3个月用红色字体高亮显示
     checkInspection() {
       return (row) => {
-        if (
-          row.inspection &&
-          row.inspection.njdate &&
-          row.inspection.expiredate
-        ) {
-          var njdate = new Date(row.inspection.njdate)
-            .toLocaleDateString()
-            .split("/");
-          njdate = this.padZero(njdate, njdate[1], njdate[2]);
-          var inspectionDate = new Date(row.inspection.expiredate)
-            .toLocaleDateString()
-            .split("/");
-          inspectionDate = this.padZero(
-            inspectionDate,
-            inspectionDate[1],
-            inspectionDate[2]
-          );
-          const expire = inspectionDate - njdate;
-          if (
-            (expire >= 300 && expire < 400) ||
-            (expire >= 9100 && expire <= 9116)
-          ) {
-            return {
-              color: "red",
-            };
+          if (row.inspection && row.inspection.njdate && row.inspection.expiredate) {
+            let month = this.getDistanceMonth(row.inspection.njdate,row.inspection.expiredate)
+            if (month == 3) {
+              return {
+                color: 'red'
+              }
+            }
           }
         }
-      };
     },
   },
   watch: {

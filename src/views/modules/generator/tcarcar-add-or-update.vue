@@ -4,6 +4,7 @@
     :close-on-click-modal="false"
     :visible.sync="visible"
     width="60%"
+    @close="onDialogClosed"
   >
     <el-tabs type="border-card" v-model="activeName">
       <el-tab-pane label="车辆信息" name="car">
@@ -80,7 +81,7 @@
                     align="right"
                     placeholder="购置时间"
                     style="width: 160px"
-                    value-format="yyyy-MM-dd"
+                    value-format="yyyy-MM-dd hh:mm:ss"
                   >
                   </el-date-picker>
                 </el-form-item>
@@ -269,28 +270,28 @@ export default {
       dataForm: {
         id: 0,
         number: "",
-        brand: "",
-        model: "",
-        type: "",
-        color: "",
-        load: "",
-        seating: "",
-        fuelconsumption: "",
-        initmileage: "",
-        servicemileage: "",
-        servicecycle: "",
-        enginenumber: "",
-        framenumber: "",
-        vendor: "",
-        buyprice: "",
+        brand: "宝马",
+        model: "a",
+        type: "1",
+        color: "黑色",
+        load: "1",
+        seating: "6",
+        fuelconsumption: "100",
+        initmileage: "200",
+        servicemileage: "300",
+        servicecycle: "30",
+        enginenumber: "dfwaf666",
+        framenumber: "jhrdy999",
+        vendor: "jtdjdd",
+        buyprice: "600000",
         buydate: "",
-        company: "",
+        company: "单位1",
         deptid: "",
         deptidName: "",
-        usecompany: "",
+        usecompany: "使用单位1",
         usedept: "",
-        status: "",
-        remark: "",
+        status: "1",
+        remark: "jkdtjdr",
         isstop: 0,
       },
       carTypes: [
@@ -394,50 +395,47 @@ export default {
   methods: {
     init(row, isUpdate) {
       this.visible = true;
-      this.dataForm.id = row.id || 0;
+      this.dataForm.id = row ? row.id : 0;
       this.$nextTick(() => {
         this.$refs.tCarInspection.init(row, isUpdate);
         this.$refs.tCarInsurance.init(row, isUpdate);
-        this.$refs.tCarDriver.init(this.dataForm.id, isUpdate);
-      });
-      this.$nextTick(() => {
+        this.$refs.tCarDriver.init(this.dataForm.id, isUpdate, true);
         this.$refs["dataForm"].resetFields();
-        if (this.dataForm.id) {
-          this.$http({
-            url: this.$http.adornUrl(
-              `/generator/tcarcar/info/${this.dataForm.id}`
-            ),
-            method: "get",
-            params: this.$http.adornParams(),
-          }).then(({ data }) => {
-            if (data && data.code === 0) {
-              this.dataForm.number = data.tCarCar.number;
-              this.dataForm.brand = data.tCarCar.brand;
-              this.dataForm.model = data.tCarCar.model;
-              this.dataForm.type = data.tCarCar.type;
-              this.dataForm.color = data.tCarCar.color;
-              this.dataForm.load = data.tCarCar.load;
-              this.dataForm.seating = data.tCarCar.seating;
-              this.dataForm.fuelconsumption = data.tCarCar.fuelconsumption;
-              this.dataForm.initmileage = data.tCarCar.initmileage;
-              this.dataForm.servicemileage = data.tCarCar.servicemileage;
-              this.dataForm.servicecycle = data.tCarCar.servicecycle;
-              this.dataForm.enginenumber = data.tCarCar.enginenumber;
-              this.dataForm.framenumber = data.tCarCar.framenumber;
-              this.dataForm.vendor = data.tCarCar.vendor;
-              this.dataForm.buyprice = data.tCarCar.buyprice;
-              this.dataForm.buydate = data.tCarCar.buydate;
-              this.dataForm.company = data.tCarCar.company;
-              this.dataForm.deptid = data.tCarCar.deptid;
-              this.dataForm.deptidName = data.tCarCar.deptidName;
-              this.dataForm.usecompany = data.tCarCar.usecompany;
-              this.dataForm.usedept = data.tCarCar.usedept;
-              this.dataForm.status = data.tCarCar.status;
-              this.dataForm.remark = data.tCarCar.remark;
-              this.dataForm.isstop = data.tCarCar.isstop;
-            }
-          });
-        }
+        this.$http({
+          url: this.$http.adornUrl(
+            `/generator/tcarcar/info/${this.dataForm.id}`
+          ),
+          method: "get",
+          params: this.$http.adornParams(),
+        }).then(({ data }) => {
+          if (data && data.code === 0) {
+            console.log(data);
+            this.dataForm.number = data.tCarCar.number;
+            this.dataForm.brand = data.tCarCar.brand;
+            this.dataForm.model = data.tCarCar.model;
+            this.dataForm.type = data.tCarCar.type;
+            this.dataForm.color = data.tCarCar.color;
+            this.dataForm.load = data.tCarCar.load;
+            this.dataForm.seating = data.tCarCar.seating;
+            this.dataForm.fuelconsumption = data.tCarCar.fuelconsumption;
+            this.dataForm.initmileage = data.tCarCar.initmileage;
+            this.dataForm.servicemileage = data.tCarCar.servicemileage;
+            this.dataForm.servicecycle = data.tCarCar.servicecycle;
+            this.dataForm.enginenumber = data.tCarCar.enginenumber;
+            this.dataForm.framenumber = data.tCarCar.framenumber;
+            this.dataForm.vendor = data.tCarCar.vendor;
+            this.dataForm.buyprice = data.tCarCar.buyprice;
+            this.dataForm.buydate = data.tCarCar.buydate;
+            this.dataForm.company = data.tCarCar.company;
+            this.dataForm.deptid = data.tCarCar.deptid;
+            this.dataForm.deptidName = data.tCarCar.deptidName;
+            this.dataForm.usecompany = data.tCarCar.usecompany;
+            this.dataForm.usedept = data.tCarCar.usedept;
+            this.dataForm.status = data.tCarCar.status;
+            this.dataForm.remark = data.tCarCar.remark;
+            this.dataForm.isstop = data.tCarCar.isstop;
+          }
+        });
       });
     },
     // 表单提交
@@ -488,7 +486,7 @@ export default {
                     this.$refs.tCarInsurance.init();
                     this.$refs.tCarDriver.init();
                     this.visible = false;
-                    this.$emit("refreshDataList");
+                    this.$emit("refreshDataList",false,this.dataForm.id <= 0 ? true : false);
                   },
                 });
               } else {
@@ -499,12 +497,17 @@ export default {
         }
       });
     },
+    clearFormData() {
+      for (let i in this.dataForm) {
+        delete this.dataForm[i];
+      }
+    },
     // 取消修改
     onDialogClosed() {
       this.$refs.tCarInspection.init();
       this.$refs.tCarInsurance.init();
       this.$refs.tCarDriver.init();
-      this.visible = false
+      this.visible = false;
       this.$emit("tCarUpdateClosed");
     },
   },

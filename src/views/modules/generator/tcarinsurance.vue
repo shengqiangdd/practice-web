@@ -3,7 +3,7 @@
     <el-form
       :inline="true"
       :model="dataForm"
-      @keyup.enter.native="getDataList(dataForm.id)"
+      @keyup.enter.native="getDataList()"
     >
       <el-form-item>
         <el-button
@@ -19,7 +19,7 @@
           @click="addOrUpdateHandle(upId,isAdd = false)"
           >编辑</el-button
         >
-        <el-button @click="getDataList(dataForm.id)">刷新</el-button>
+        <el-button @click="getDataList()">刷新</el-button>
         <el-button
           v-if="isAuth('generator:tcarinsurance:delete')"
           type="danger"
@@ -160,14 +160,18 @@ export default {
   components: {
     AddOrUpdate,
   },
-  mounted() {},
+  mounted() {
+    if (this.dataForm.id > 0) {
+      this.getDataList(this.dataForm.id);
+    }
+  },
   activated() {
     this.getDataList();
   },
   methods: {
     init(row, isUpdate) {
+      this.dataForm.id = row ? row.id : 0;
       if (row) {
-        this.dataForm.id = row.id || 0;
         this.currentCarRow = row || {};
       }
       this.$nextTick(() => {
@@ -296,6 +300,11 @@ export default {
         s.checked = false;
       });
     },
+    clearFormData() {
+      for(let i in this.dataForm) {
+        delete this.dataForm[i]
+      }
+    }
   },
   computed: {
     // 计算选中的个数
