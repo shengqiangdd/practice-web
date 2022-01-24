@@ -19,10 +19,15 @@
         </el-col>
         <el-col :span="10">
           <el-form-item label="用车人单位" prop="deptid">
-            <el-input
-              v-model="dataForm.deptid"
-              placeholder="用车人单位"
-            ></el-input>
+            <el-select v-model="dataForm.deptid">
+              <el-option
+                v-for="item in useCarPeopleList"
+                :key="item.deptid"
+                :label="item.deptName"
+                :value="item.deptid"
+              >
+              </el-option>
+            </el-select>
           </el-form-item>
         </el-col>
       </el-row>
@@ -201,7 +206,7 @@ export default {
         begintime: "",
         planreturntime: "",
         endtime: "",
-        deptid: "1",
+        deptid: 120,
         deptname: "",
         party: "",
         driver: "",
@@ -230,6 +235,7 @@ export default {
         },
       ],
       driverList: [],
+      useCarPeopleList: [],
       dataRule: {
         carid: [{ required: true, message: "车号不能为空", trigger: "blur" }],
         userid: [
@@ -331,13 +337,14 @@ export default {
               this.dataForm.remark = data.tCarRun.remark;
               this.dataForm.type = data.tCarRun.type;
               this.dataForm.status = data.tCarRun.status;
+              this.useCarPeopleList = data.useList;
             }
           })
           .catch((_) => {
-            this.dataForm.begintime = '';
-            this.dataForm.planreturntime = '';
-            this.dataForm.endtime = '';
-            this.dataForm.number = '';
+            this.dataForm.begintime = "";
+            this.dataForm.planreturntime = "";
+            this.dataForm.endtime = "";
+            this.dataForm.number = "";
           });
       });
       if (this.driverList.length <= 0 && row) {
@@ -413,10 +420,10 @@ export default {
       }).then(({ data }) => {
         if (data && data.code === 0) {
           this.driverList = data.page.records;
-          var driver = {}
+          var driver = {};
           if (val) {
             driver = this.driverList.filter((d) => val.driver == d.name)[0];
-          }else {
+          } else {
             driver = this.driverList.filter((d) => d.id == 3)[0];
           }
           this.dataForm.driverId = driver ? driver.id : "";
@@ -427,9 +434,9 @@ export default {
       });
     },
     onDialogClosed() {
-      this.dataForm.id = 0
-      this.visible = false
-    }
+      this.dataForm.id = 0;
+      this.visible = false;
+    },
   },
   watch: {
     dataForm: {

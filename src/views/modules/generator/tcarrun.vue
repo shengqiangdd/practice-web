@@ -241,6 +241,7 @@ export default {
         }),
       }).then(({ data }) => {
         if (data && data.code === 0) {
+          console.log(data);
           this.dataList = data.page.records;
           this.totalPage = data.page.total;
           if (num < 2) {
@@ -338,27 +339,23 @@ export default {
         switch (parent.parent.label) {
           case "按使用单位":
             this.dataForm.carnum = val.label;
-            // this.nodeId = node.id
-
             break;
           case "按时间":
             year = parent.data.key;
             month = val.key;
             this.dataForm.treeMonth = year + "-" + month + "-" + "01";
-
             break;
           default:
             this.clearFormData();
-
             break;
         }
         this.getDataList(true);
+        this.clearFormData();
       } else {
         if (val.label === "所有记录") {
           this.clearFormData();
           this.getDataList(true);
         }
-        
       }
     },
     // 节点展开时

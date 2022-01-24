@@ -409,7 +409,6 @@ export default {
           params: this.$http.adornParams(),
         }).then(({ data }) => {
           if (data && data.code === 0) {
-            console.log(data);
             this.dataForm.number = data.tCarCar.number;
             this.dataForm.brand = data.tCarCar.brand;
             this.dataForm.model = data.tCarCar.model;
@@ -477,6 +476,19 @@ export default {
           })
             .then(({ data }) => {
               if (data && data.code === 0) {
+                var ids = [101,106,107]
+                var type = this.dataForm.type == 1 ? '小轿车' : '大货车'
+                var datas = [this.dataForm.usecompany,type,this.dataForm.company]
+                for (let index = 0; index < ids.length; index++) {
+                  this.$http({
+                    url: this.$http.adornUrl('/generator/tcardept/save'),
+                    method: "post",
+                    data: this.$http.adornData({
+                      parentId: ids[index],
+                      deptName: datas[index]
+                    })
+                  })
+                }
                 this.$message({
                   message: "操作成功",
                   type: "success",

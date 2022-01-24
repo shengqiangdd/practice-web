@@ -6,9 +6,10 @@
         <div class="typetree">
           <el-tree
             :data="typeTree"
-            node-key="id"
+            node-key="deptid"
             :props="defaultProps"
             :default-expanded-keys="nodeIds"
+            ref="tree"
             @node-click="handleNodeClick"
             @node-expand="handleNodeExpand"
             @node-collapse="handleNodeCollapse"
@@ -21,7 +22,7 @@
           <el-form
             :inline="true"
             :model="dataForm"
-            @keyup.enter.native="getDataList(true)"
+            @keyup.enter.native="getDataList()"
           >
             <el-form-item label="车号">
               <el-input v-model="dataForm.number" placeholder="车号"></el-input>
@@ -30,9 +31,7 @@
               <el-input v-model="dataForm.type" placeholder="车型"></el-input>
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" @click="getDataList(true)"
-                >查询</el-button
-              >
+              <el-button type="primary" @click="getDataList()">查询</el-button>
             </el-form-item>
           </el-form>
           <el-form :inline="true">
@@ -44,7 +43,7 @@
                 >新增</el-button
               >
               <el-button @click="onSearch()">高级查询</el-button>
-              <el-button @click="getDataList(isFlush=true)">刷新</el-button>
+              <el-button @click="getDataList((isFlush = true))">刷新</el-button>
               <el-button
                 v-if="isAuth('generator:tcarcar:delete')"
                 type="danger"
@@ -212,11 +211,12 @@ export default {
         seating: "",
         company: "",
         usecompany: "",
-        type: "",
+        type: null,
         buydate1: null,
         buydate2: null,
-        ntype: "",
+        ntype: 0,
       },
+      sum: 0,
       isUpdate: false,
       dataList: [],
       pageIndex: 1,
@@ -244,26 +244,26 @@ export default {
     TcarcarSearch,
   },
   mounted() {
-    if (this.dataList.length <= 0) {
-      this.clearFormData();
-      this.getDataList();
-    }
+    // if (this.dataList.length <= 0) {
+    //   this.clearFormData();
+    //   this.getDataList();
+    // }
+    // this.getDataList();
   },
   activated() {
     this.getDataList();
   },
   methods: {
     // 获取数据列表
-    getDataList(flag, isAdd) {
+    getDataList(flag) {
       if (flag) {
         this.pageIndex = 1;
       }
       if (this.isFlush) {
-        this.clearDataForm()
-        this.isFlush = false
+        this.clearDataForm();
+        this.isFlush = false;
       }
       this.isUpdate = false;
-      var num = 0;
       this.dataListLoading = true;
       this.$http({
         url: this.$http.adornUrl("/generator/tcarcar/list"),
@@ -286,24 +286,27 @@ export default {
           this.dataList = data.page.records;
           this.totalPage = data.page.pages;
           this.totalCount = data.page.total;
-          this.currentCount = data.page.records.length
-          this.dialogVisible = false;
-          this.searchVisible = false;
-          if (num < 2) {
-            num++;
-          }
-          if (num == 1) {
+          this.currentCount = data.page.records.length;
+          this.typeTree = data.trees;
+          if (this.sum <= 1) {
+            this.sum++;
             this.dataList.forEach((d) => {
               this.$set(d, "checked", false);
             });
-            this.getTypetree();
+            this.typeTree.forEach((t) => {
+              this.expandAll(t);
+            });
           }
+          this.dialogVisible = false;
+          this.searchVisible = false;
+          
           // this.clearDataForm()
-          if (isAdd) {
-            this.$nextTick(() => {
-              this.$refs.tcarTable.bodyWrapper.scrollTop = this.$refs.tcarTable.bodyWrapper.scrollHeight;
-            })
-          }
+          // if (isAdd) {
+          //   this.$nextTick(() => {
+          //     this.$refs.tcarTable.bodyWrapper.scrollTop =
+          //     this.$refs.tcarTable.bodyWrapper.scrollHeight;
+          //   });
+          // }
         } else {
           this.dataList = [];
           this.totalPage = 0;
@@ -340,7 +343,7 @@ export default {
     // 关闭车辆档案弹窗
     dialogToClose() {
       this.dialogVisible = false;
-      this.getDataList()
+      this.getDataList();
     },
     // 新增 / 修改
     addOrUpdateHandle(row) {
@@ -411,14 +414,14 @@ export default {
       });
     },
     handleNodeClick(val, node) {
-      if (node.parent != null) {
+      if (val.parentId != 100 || val.parentId != 0) {
         this.clearFormData();
         switch (node.parent.label) {
-          case "按单位注册":
+          case "按注册单位":
             this.dataForm.company = val.label;
             break;
           case "按车辆类型":
-            this.dataForm.ntype = val.key;
+            this.dataForm.type = val.label;
             break;
           case "按使用单位":
             this.dataForm.usecompany = val.label;
@@ -433,26 +436,52 @@ export default {
     // 树节点展开
     handleNodeExpand(data) {
       // 如果数组没有该id则保存当前展开的节点
-      let isAdd = this.nodeIds.find((item) => item == data.id);
+      let isAdd = this.nodeIds.find((item) => item == data.deptid);
+      // this.$nextTick(() => {
+      //   this.$refs.tree.store.nodesMap[data.deptid].expanded = true;
+      //   this.controllMap(this.$refs.tree.store.nodesMap[data.deptid], true);
+      // });
       if (!isAdd) {
-        this.nodeIds.push(data.id); // 在节点展开时添加到默认展开数组
+        this.nodeIds.push(data.deptid); // 在节点展开时添加到默认展开数组
+        // this.removeChildrenIds(data,false)
       }
     },
     // 树节点关闭
     handleNodeCollapse(data) {
-      this.nodeIds = this.nodeIds.filter((item) => item != data.id); // 收起时过滤数组对应选项
-      this.removeChildrenIds(data); // 这里主要针对多级树状结构，当关闭父节点时，递归删除父节点下的所有子节点
+      // this.$nextTick(() => {
+      //   this.$refs.tree.store.nodesMap[data.deptid].expanded = false;
+      //   this.controllMap(this.$refs.tree.store.nodesMap[data.deptid], false);
+      // });
+      this.nodeIds = this.nodeIds.filter((item) => item != data.deptid); // 收起时过滤数组对应选项
+      this.removeChildrenIds(data, true); // 这里主要针对多级树状结构，当关闭父节点时，递归删除父节点下的所有子节点
+    },
+    controllMap(data, flag) {
+      const that = this;
+      this.$nextTick(() => {
+        if (data.childNodes) {
+          data.childNodes.forEach((c) => {
+            c.expanded = flag;
+            that.controllMap(c, flag);
+          });
+        }
+      });
     },
     // 移除树节点id数组的子节点id
-    removeChildrenIds(data) {
+    removeChildrenIds(data, flag) {
       const that = this;
       if (data.children) {
         data.children.forEach((item) => {
-          const index = that.nodeIds.includes(item.id);
-          if (index > 0) {
-            that.nodeIds.splice(index, 1);
+          const index = that.nodeIds.includes(item.deptid);
+          if (flag) {
+            if (index > 0) {
+              that.nodeIds.splice(index, 1);
+              that.removeChildrenIds(item, flag);
+            }
           }
-          that.removeChildrenIds(item);
+          if (index < 0) {
+            that.nodeIds.push(item.deptid);
+            that.removeChildrenIds(item, flag);
+          }
         });
       }
     },
@@ -470,12 +499,12 @@ export default {
       }
     },
     uniq(array) {
-      let arrNum = array.reduce((prev,cur) => {
+      let arrNum = array.reduce((prev, cur) => {
         if (!prev.includes(cur)) {
-          prev.push(cur)
+          prev.push(cur);
         }
-        return prev
-      },[])
+        return prev;
+      }, []);
       return arrNum;
     },
     getTypetree() {
@@ -485,6 +514,7 @@ export default {
         method: "get",
       }).then(({ data }) => {
         if (data && data.code === 0) {
+          console.log(data);
           this.typeTree = [];
           var list = data.list;
           for (let i in list) {
@@ -496,28 +526,52 @@ export default {
         this.dataListLoading = false;
       });
     },
-    getDistanceMonth(startTime,endTime) {
-      startTime = new Date(startTime)
-      endTime = new Date(endTime)
-      var dateToMonth = 0
-      var startDate = startTime.getDate() 
-      + startTime.getHours()/24 + startTime.getMinutes()/24/60;
-      var endDate = endTime.getDate()
-      + endTime.getHours()/24 + endTime.getMinutes()/24/60;
+    getDistanceMonth(startTime, endTime) {
+      startTime = new Date(startTime);
+      endTime = new Date(endTime);
+      var dateToMonth = 0;
+      var startDate =
+        startTime.getDate() +
+        startTime.getHours() / 24 +
+        startTime.getMinutes() / 24 / 60;
+      var endDate =
+        endTime.getDate() +
+        endTime.getHours() / 24 +
+        endTime.getMinutes() / 24 / 60;
       if (endDate >= startDate) {
-        dateToMonth = 0
+        dateToMonth = 0;
       } else {
-        dateToMonth = -1
+        dateToMonth = -1;
       }
-      let yearToMonth = (endTime.getFullYear() - startTime.getFullYear()) * 12
-      let monthToMonth = endTime.getMonth() - startTime.getMonth()
-      return yearToMonth + monthToMonth + dateToMonth
+      let yearToMonth = (endTime.getFullYear() - startTime.getFullYear()) * 12;
+      let monthToMonth = endTime.getMonth() - startTime.getMonth();
+      return yearToMonth + monthToMonth + dateToMonth;
+    },
+    // 默认展开所有节点
+    expandAll(data) {
+      const that = this;
+      if (!this.nodeIds.find((n) => n == data.deptid)) {
+        that.nodeIds.push(data.deptid);
+      }
+      this.expandChild(data);
+    },
+    expandChild(data) {
+      const that = this;
+      if (data.children) {
+        data.children.forEach((n) => {
+          // this.$refs.tree.store.nodesMap[n.deptid].expanded = true
+          if (!that.nodeIds.find((item) => item == n.deptid)) {
+            that.nodeIds.push(n.deptid);
+          }
+          that.expandChild(n);
+        });
+      }
     },
     clearDataForm() {
-      for(let i in this.dataForm) {
-        delete this.dataForm[i]
+      for (let i in this.dataForm) {
+        delete this.dataForm[i];
       }
-    }
+    },
   },
   computed: {
     // 计算选中的个数
@@ -537,27 +591,37 @@ export default {
     checkInsurance() {
       return (row) => {
         if (row.insurance && row.insurance.bxdate && row.insurance.expiredate) {
-           let month = this.getDistanceMonth(row.insurance.bxdate,row.insurance.expiredate)
-           if (month == 3) {
-              return {
-                color: 'red'
-              }
-            }
+          let month = this.getDistanceMonth(
+            row.insurance.bxdate,
+            row.insurance.expiredate
+          );
+          if (month == 3) {
+            return {
+              color: "red",
+            };
+          }
         }
       };
     },
     // 计算年检到期时间是否还有3个月，如果还有3个月用红色字体高亮显示
     checkInspection() {
       return (row) => {
-          if (row.inspection && row.inspection.njdate && row.inspection.expiredate) {
-            let month = this.getDistanceMonth(row.inspection.njdate,row.inspection.expiredate)
-            if (month == 3) {
-              return {
-                color: 'red'
-              }
-            }
+        if (
+          row.inspection &&
+          row.inspection.njdate &&
+          row.inspection.expiredate
+        ) {
+          let month = this.getDistanceMonth(
+            row.inspection.njdate,
+            row.inspection.expiredate
+          );
+          if (month == 3) {
+            return {
+              color: "red",
+            };
           }
         }
+      };
     },
   },
   watch: {
@@ -565,12 +629,10 @@ export default {
       handler(newVal, oldVal) {
         if (newVal && newVal == "小轿车") {
           this.dataForm.ntype = 1;
-        } else if (newVal == "大货车") {
+        } else if (newVal && newVal == "大货车") {
           this.dataForm.ntype = 2;
-        } else if (newVal != '' && newVal != null) {
+        }  else {
           this.dataForm.ntype = 0;
-        } else {
-          this.dataForm.ntype = null;
         }
       },
     },
