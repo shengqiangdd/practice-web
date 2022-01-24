@@ -59,7 +59,7 @@
               </el-form-item>
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" @click="getDateList(dataForm.begintime)"
+              <el-button type="primary" @click="getDateList()"
                 >查询</el-button
               >
             </el-form-item>
@@ -87,7 +87,7 @@
             >
               <template slot-scope="scope">
                 <div
-                  v-if="isHaveBegintime != true"
+                  v-if="!isHaveBegintime"
                   :style="isChuChe(scope.row, item)"
                   @click="clickToSeeCarRun($event, scope.row)"
                 >
@@ -173,15 +173,14 @@ export default {
         if (data && data.code === 0) {
           this.dataList = data.list;
           console.log(data);
-          if (
-            this.dataForm.begintime != null &&
-            this.dataForm.begintime != ""
-          ) {
-            if (data.dlist != null) {
-              this.rows = data.dlist;
-              this.dateList = data.dates;
-              this.isHaveBegintime = true;
-            }
+          if (data.dlist != null) {
+            this.rows = data.dlist;
+            this.dateList = data.dates;
+            this.isHaveBegintime = true;
+          }
+          if (this.dataForm.begintime == '' || this.dataForm.endtime == '' ) {
+            this.dataForm.begintime = data.begin
+            this.dataForm.endtime = data.end
           }
         } else {
           this.dataList = [];
@@ -235,19 +234,31 @@ export default {
     },
     onSwitchChange(val) {
       const dataForm = this.dataForm;
+      let begin;
+      let end;
       if (val) {
         dataForm.lastText = "上一月";
         dataForm.nextText = "下一月";
         dataForm.monthOrWeek = "month";
         dataForm.selectText = "选择查询月份：";
         dataForm.dateType = "month";
+        begin = this.splitDate(
+            this.dayjs(this.dataForm.begintime).startOf("month").$d
+      );
+       end = this.splitDate(this.dayjs(begin).endOf("month").$d);
       } else {
         dataForm.lastText = "上一周";
         dataForm.nextText = "下一周";
         dataForm.monthOrWeek = "week";
         dataForm.selectText = "选择查询周：";
         dataForm.dateType = "week";
+        begin = this.splitDate(this.dayjs(new Date()).startOf("week").add(1,'day').$d);
+        end = this.splitDate(this.dayjs(begin).add(6, "day").$d);
+        this.dataForm.weekVal = begin
       }
+      this.dataForm.begintime = begin;
+      this.dataForm.endtime = end;
+      return this.getDataList();
     },
     showDate() {
       const dataForm = this.dataForm;
@@ -258,22 +269,24 @@ export default {
     },
     lastDateClick() {
       if (this.dataForm.begintime) {
-        let start = this.dayjs(this.dataForm.begintime).subtract(7, "day").$d;
-        let end = this.dayjs(start).add(6, "day").$d;
-        this.dataForm.begintime = this.splitDate(start);
-        this.dataForm.endtime = this.splitDate(end);
+        let start = this.dayjs(this.dataForm.begintime).subtract(1, "month").startOf("month").$d;
+        let end = this.dayjs(start).endOf("month").$d;
         if (this.dataForm.dateType === "week") {
+         start = this.dayjs(this.dataForm.begintime).subtract(7, "day").$d;
+        end = this.dayjs(start).add(6, "day").$d;
           this.dataForm.weekVal = this.dayjs(this.dataForm.weekVal).subtract(
             7,
             "day"
           );
         }
-        return this.getDateList(this.dataForm.begintime);
+        this.dataForm.begintime = this.splitDate(start);
+        this.dataForm.endtime = this.splitDate(end);
+        return this.getDataList();
       }
     },
     nextDateClick() {
       if (this.dataForm.begintime) {
-        let start = this.dayjs(this.dataForm.begintime).add(1, "month").$d;
+        let start = this.dayjs(this.dataForm.begintime).add(1, "month").startOf("month").$d;
         let end = this.dayjs(start).endOf("month").$d;
         if (this.dataForm.dateType === "week") {
           start = this.dayjs(this.dataForm.begintime).add(7, "day").$d;
@@ -336,6 +349,18 @@ export default {
         }
       },
     },
+    // "dataForm.dateType": {
+    //   handler(newVal,oldVal) {
+    //     if (newVal == 'week') {
+    //       let start = this.dayjs(new Date()).startOf("week").$d+1;
+    //       console.log(start);
+    //       let end = this.dayjs(start).add(6, "day").$d;
+    //       this.dataForm.begintime = this.splitDate(start);
+    //       this.dataForm.endtime = this.splitDate(end);
+    //       this.getDateList()
+    //     }
+    //   }
+    // }
   },
 };
 </script>
